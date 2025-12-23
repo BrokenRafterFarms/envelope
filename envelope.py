@@ -16,8 +16,9 @@ TO_Y_START_IN = 2.25
 LINE_HEIGHT_PT = 12
 
 # I/O and default from-address (moved here so they're easy to edit)
+# Used File From: 
 INFILE = 'address.csv'
-OUTFILE = 'out.pdf'
+OUTFILE = 'Processed_Addresses.pdf'
 FROM_ADDR = ('The Franzen Family',
              '[elided]',
              'San Francisco, CA 94110')
@@ -49,20 +50,30 @@ def write_envelopes(out, from_addr, to_addrs):
 
 
 def load_csv(filename):
-    # This logic is necessarily use case specific, but for
-    # our list we just have three columns of addresses and an optional
-    # fourth column that says "yes" for addresses we wanted printed.
+    # Parse CSV with columns: Name, Street Address Line 1, Street Address Line 2, City, State, Code
+    # Returns formatted address lines: [Name, Street Line 1, Street Line 2 (if present), City State Code]
     with open(filename) as f:
         for i, row in enumerate(csv.reader(f)):
-            if i == 0:
+            if i == 0:  # Skip header row
                 continue
 
-            type = ''
-            if len(row) > 3:
-                type = row[3].strip()
-            if type != 'yes':
-                continue
-            yield row[0:3]
+            if len(row) < 6:
+                continue  # Skip incomplete rows
+
+            name = row[0].strip()
+            street1 = row[1].strip()
+            street2 = row[2].strip()
+            city = row[3].strip()
+            state = row[4].strip()
+            code = row[5].strip()
+
+            # Build address lines, excluding empty street2
+            addr_lines = [name, street1]
+            if street2:
+                addr_lines.append(street2)
+            addr_lines.append(f"{city} {state} {code}")
+
+            yield addr_lines
 
 
 if __name__ == '__main__':
